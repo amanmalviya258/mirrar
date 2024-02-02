@@ -1,11 +1,11 @@
 {
-  "name": "chai-par-charcha",
+  "name": "mirrar",
   "version": "1.0.0",
-  "description": "A random project to revise my backend learnings",
+  "description": "A ecommerce project assignment",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon nodemon -r dotenv/config --experimental-json-modules src/index.js"
   },
   "author": "",
   "license": "ISC",
