@@ -70,4 +70,84 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "user registred successfully"));
 });
 
-export { registerUser };
+
+const generateAccessAndRefereshToken = asyncHandler(async (userID) => {
+  try {
+    const user = await User.findById(userID);
+    const accessToken = await user.generateAccessToken();
+    const refreshToken = await user.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating referesh and access token"
+    );
+  }
+});
+
+const loginUser = asyncHandler(async (req, res) => {
+  //take out password and email from body
+  // check with email or username  if it exists
+  // compare password with hashed value
+  //access and refresh toeken
+  //send cookie
+
+  const { email, username, password } = req.body;
+
+  if (!username || !email) {
+    throw new ApiError(400, "username or password is required");
+  }
+
+  const user = await User.findOne({
+    $or: [{ username, email }],
+  });
+
+  if (!user) {
+    throw new ApiError(404, "user not found");
+  }
+
+  const isPasswordValid = await user.isPasswordCorrect(password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid user credentials");
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefereshToken(
+    user._id
+  );
+
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true, //only can be modified by server
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiError(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        "user logged in successfully"
+      )
+    );
+
+  //--------------------------//
+});
+
+const logOutUser = asyncHandler(async (req, res) => {
+
+
+
+});
+
+export { registerUser, loginUser };
