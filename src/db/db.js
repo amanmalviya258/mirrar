@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { DB_name } from "../constants.js";
-import { MONDODB_URI } from "../constants.js";
 import dotenv from "dotenv";
 dotenv.config();
 // * ----------------------------------------------------------------

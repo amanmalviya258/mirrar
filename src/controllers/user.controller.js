@@ -4,7 +4,6 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
-
 const registerUser = asyncHandler(async (req, res) => {
   //get users details from frontend
   //validation- not empty
@@ -17,21 +16,28 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const { username, email, fullName, password } = req.body;
 
-  console.log("email: ", email);
-
   if (
     [fullName, email, username, password].some((field) => field?.trim() == "")
   ) {
     throw new ApiError(400, "All fields are required");
   }
 
-  const existedUser = User.findOne({ $or: [{ username }, { email }] });
+  const existedUser = await User.findOne({ $or: [{ username }, { email }] });
 
   if (existedUser) {
     throw new ApiError(409, "User with email or username already exists");
   }
 
-  const profilePicLocalPath = req.files?.profilePic[0]?.path;
+  //const profilePicLocalPath = req.files?.profilePic[0]?.path;
+
+  let profilePicLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.profilePic) &&
+    req.files.profilePic.length > 0
+  ) {
+    profilePicLocalPath = req.files.profilePic[0].path;
+  }
 
   //   if (!profilePicLocalPath) {
   //     throw new ApiError(400, "ProfilePic file is required");
@@ -51,18 +57,17 @@ const registerUser = asyncHandler(async (req, res) => {
     username: username.toLowerCase(),
   });
 
-  const createdUser = User.findById(user._id).select("-password -refreshToken");
+  const createdUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
 
   if (!createdUser) {
     throw new ApiError(500, "something went wrong while creating a user");
   }
 
-
-  return res.status(201).json(
-    new ApiResponse(200 , createdUser , "user registred successfully")
-  )
-
-  //--------------------------------------------
+  return res
+    .status(201)
+    .json(new ApiResponse(200, createdUser, "user registred successfully"));
 });
 
 export { registerUser };
