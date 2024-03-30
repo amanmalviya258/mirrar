@@ -4,6 +4,26 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+
+
+const generateAccessAndRefereshToken = async (userID) => {
+  try {
+    const user = await User.findById(userID);
+    const accessToken = await user.generateAccessToken();
+    const refreshToken = await user.generateRefreshToken();
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating referesh and access token"
+    );
+  }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   //get users details from frontend
   //validation- not empty
@@ -70,25 +90,6 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "user registred successfully"));
 });
 
-
-const generateAccessAndRefereshToken = asyncHandler(async (userID) => {
-  try {
-    const user = await User.findById(userID);
-    const accessToken = await user.generateAccessToken();
-    const refreshToken = await user.generateRefreshToken();
-
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
-
-    return { accessToken, refreshToken };
-  } catch (error) {
-    throw new ApiError(
-      500,
-      "Something went wrong while generating referesh and access token"
-    );
-  }
-});
-
 const loginUser = asyncHandler(async (req, res) => {
   //take out password and email from body
   // check with email or username  if it exists
@@ -98,13 +99,24 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const { email, username, password } = req.body;
 
-  if (!username || !email) {
-    throw new ApiError(400, "username or password is required");
+  if (!username && !email) {
+    throw new ApiError(400, "username or email is required");
   }
 
-  const user = await User.findOne({
-    $or: [{ username, email }],
-  });
+  // const user = await User.findOne({
+  //   $or: [{ username, email }],
+  // }
+  // );
+
+  const query = {};
+  if (username) {
+    query.username = username;
+  }
+
+  if (email) {
+    query.email = email;
+  }
+  const user = await User.findOne(query);
 
   if (!user) {
     throw new ApiError(404, "user not found");
@@ -134,20 +146,68 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-      new ApiError(
+      new ApiResponse(
         200,
         { user: loggedInUser, accessToken, refreshToken },
         "user logged in successfully"
       )
     );
-
-  //--------------------------//
 });
 
 const logOutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        //set is a mongo db operator
+        refreshToken: undefined,
+      },
+    },
+    { new: true }
+  );
 
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
 
-
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "UserLogged Out successfully"));
 });
 
-export { registerUser, loginUser };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------
+export { registerUser, loginUser, logOutUser };

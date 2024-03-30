@@ -33,17 +33,26 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
-    profilePic:{
-        type: String //cloudinary
-    }
+    profilePic: {
+      type: String, // cloudinary
+      required: true,
+    },
+    coverImage: {
+      type: String, //cloudinary
+    },
+    watchHistory: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
-
 userSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
+  if (this.isModified("password")) {  //isModified
     this.password = await bcrypt.hash(this.password, 10);
     next();
   }
@@ -53,13 +62,13 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = async function () {
-  jwt.sign(
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
     {
       _id: this._id,
       fullName: this.fullName,
       email: this.email,
-      username: this.fullName,
+      username: this.username,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -67,8 +76,8 @@ userSchema.methods.generateAccessToken = async function () {
     }
   );
 };
-userSchema.methods.generateRefreshToken = async function () {
-  jwt.sign(
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
     {
       _id: this._id,
     },

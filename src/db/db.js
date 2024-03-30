@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { DB_name } from "../constants.js";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config();            
 // * ----------------------------------------------------------------
 //Method  iife
 const connectDB = async () => {

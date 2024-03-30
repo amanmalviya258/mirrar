@@ -1,2 +1,2 @@
- export const DB_name = 'ecommerce'
+ export const DB_name = 'youtube'
  
