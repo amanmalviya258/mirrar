@@ -1,1 +1,1 @@
-This is a mirrar assignment project of a ecommerce application 
+A scalable ecommerce application in progress focussing on best industry practices
