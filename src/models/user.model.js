@@ -33,7 +33,7 @@ const userSchema = new Schema(
     refreshToken: {
       type: String,
     },
-    profilePic: {
+    avatar: {
       type: String, // cloudinary
       required: true,
     },
