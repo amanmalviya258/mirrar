@@ -1,1 +1,1 @@
-A scalable ecommerce application in progress focussing on best industry practices
+A video streaming ed-tech platform
