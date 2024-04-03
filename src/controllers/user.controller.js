@@ -26,8 +26,8 @@ const generateAccessAndRefereshToken = async (userID) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, fullName, password } = req.body;
-  console.log("body", req.body);
-  console.log("files", req.files);
+ // console.log("body", req.body);
+  //console.log("files", req.files);
   if (
     [fullName, email, username, password].some(
       (field) => field?.trim() === "" || !field
