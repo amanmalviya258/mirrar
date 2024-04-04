@@ -253,8 +253,18 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName, email, username } = req.body;
-  if (!fullName && !email) {
+  if (!fullName && !email && !username) {
     throw new ApiError(401, "any field not provided");
+  }
+
+  const existedEmail = User.findOne(email);
+  if (existedEmail) {
+    throw new ApiError(401, "email already existed");
+  }
+
+  const existedUsername = User.findOne(username);
+  if (existedUsername) {
+    throw new ApiError(401, "username already existed");
   }
 
   const user = User.findByIdAndUpdate(
@@ -263,6 +273,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
       $set: {
         fullName,
         email,
+        username,
       },
     },
     { new: true }
