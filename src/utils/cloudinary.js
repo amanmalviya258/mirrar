@@ -30,13 +30,16 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const deleteOnCloudinary = async (cloudinaryOldUrl) => {
   try {
+    if(!cloudinaryOldUrl){
+      throw new ApiError(400, "old media url not found")
+    }
     const mediaDestroyer = await cloudinary
       .destroy(cloudinaryOldUrl, { resource_type: "image" })
       .then((result) => {
         console.log(result);
       });
     if (!mediaDestroyer) {
-      throw new ApiError(400, "media not found");
+      throw new ApiError(400, "media not destroyed");
     }
 
     return res
