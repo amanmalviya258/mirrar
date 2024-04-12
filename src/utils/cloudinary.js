@@ -1,9 +1,7 @@
 import fs from "fs";
 import { v2 as cloudinary } from "cloudinary";
-import { error } from "console";
-import { ApiError } from "./ApiError";
-import { ApiResponse } from "./ApiResponse";
-
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -30,10 +28,10 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const deleteOnCloudinary = async (cloudinaryOldUrl) => {
   try {
-    if(!cloudinaryOldUrl){
-      throw new ApiError(400, "old media url not found")
+    if (!cloudinaryOldUrl) {
+      throw new ApiError(400, "old media url not found");
     }
-    const mediaDestroyer = await cloudinary
+    const mediaDestroyer = await cloudinary.uploader
       .destroy(cloudinaryOldUrl, { resource_type: "image" })
       .then((result) => {
         console.log(result);
@@ -46,15 +44,10 @@ const deleteOnCloudinary = async (cloudinaryOldUrl) => {
       .status(200)
       .json(new ApiResponse(200, mediaDestroyer, "deleted successfully"));
   } catch (error) {
-    return res
-      .status(400)
-      .json(
-        new ApiResponse(
-          400,
-          mediaDestroyer,
-          "deleting media from cloudinary failed"
-        )
-      );
+    throw new ApiError(
+      400,
+      error?.message || "media deleting failed from cloudinary"
+    );
   }
 };
 
