@@ -1,7 +1,7 @@
 {
-  "name": "mirrar",
+  "name": "video-streamer",
   "version": "1.0.0",
-  "description": "A ecommerce project assignment",
+  "description": "A video streaming project",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,6 @@
     "mongoose": "^8.0.0",
     "mongoose-aggregate-paginate-v2": "^1.0.7",
     "multer": "^1.4.5-lts.1",
-    "node-email-verifier": "^1.0.1"
+    "node-email-verifier": "^1.1.1"
   }
 }
