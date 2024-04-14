@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
 
-export const verifyJWT = asyncHandler(async (req, res, next) => {
+export const verifyJWT = asyncHandler(async (req, _ , next) => {
   //response is not used hence underscored
   try {
     const token =
@@ -27,6 +27,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     }
 
     req.user = user;
+    
     next();
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid access token");
