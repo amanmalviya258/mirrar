@@ -14,7 +14,7 @@ const uploadOnCloudinary = async (localFilePath) => {
   try {
     const options = {
       unique_filename: true,
-      resource_type: "image",
+      resource_type: "auto",
       folder: "videoStreamingAssets",
     };
 

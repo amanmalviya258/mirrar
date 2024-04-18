@@ -21,12 +21,12 @@ app.use(express.static('public'))
 //routes
 import userRouter from "./routes/user.routes.js"
 import healthCheckRouter from "./routes/healthChecker.routes.js";
+import videoRouter from "./routes/video.routes.js"
 
 //routes declaration
 app.use("/api/v1/users", userRouter)
-
 app.use("/api/v1/", healthCheckRouter);
-
+app.use("/api/v1/video" , videoRouter)
 
 
 export { app };
