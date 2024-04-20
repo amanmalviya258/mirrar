@@ -35,7 +35,7 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-const deleteOnCloudinary = async (cloudinaryOldUrl) => {
+const deleteOnCloudinary = async (cloudinaryOldUrl , typeOfResource) => {
   try {
     if (!cloudinaryOldUrl) {
       throw new ApiError(400, "old media url not found");
@@ -44,10 +44,14 @@ const deleteOnCloudinary = async (cloudinaryOldUrl) => {
     console.log("publicID", publicId);
 
     const mediaDestroyer = await cloudinary.uploader
-      .destroy(publicId)
+      .destroy(publicId , {resource_type:`${typeOfResource}`})
       .then((result) => {
-        console.log(result);
+        if(!result){
+          throw new ApiError(400 , `deleting media failed from cloudinary: ${publicId}`)
+        }
       });
+
+  
     return new ApiResponse(
       200,
       mediaDestroyer,

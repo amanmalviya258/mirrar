@@ -6,9 +6,6 @@ import { User } from "../models/user.model.js";
 import { isValidObjectId } from "mongoose";
 import { uploadOnCloudinary, deleteOnCloudinary } from "../utils/cloudinary.js";
 
-const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, shortBy, shortType, userId } = req.query;
-});
 
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
@@ -65,8 +62,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
 });
 
 const updateVideoDetails = asyncHandler(async (req, res) => {
-  const { videoId } = req.params;
+  const { videoId, resourceType } = req.params;
   const { title, description } = req.body;
+
   const newThumbNailLocalPath = req.files?.thumbNail[0]?.path;
   //  console.log( newThumbNailLocalPath)
   // console.log("videoID:" , videoId)
@@ -78,8 +76,17 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
   }
 
   const previousVideo = await Video.findById(videoId);
+
   //console.log(previousVideo);
-  const deletingThumbNail = await deleteOnCloudinary(previousVideo.thumbnail);
+
+  const userId = req.user._id;
+  if (JSON.stringify(userId) !== JSON.stringify(previousVideo.owner)) {
+    throw new ApiError(401, "unauthorized video");
+  }
+  const deletingThumbNail = await deleteOnCloudinary(
+    previousVideo.thumbnail,
+    resourceType
+  );
 
   if (!deletingThumbNail) {
     throw new ApiError(401, "uploading media to cloudinary failed");
@@ -105,9 +112,119 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
   if (!video) {
     throw new ApiError(400, "updating details to mongoDB failed");
   }
-  res
+  return res
     .status(200)
     .json(new ApiResponse(200, video, "video details updated successfully"));
 });
 
-export { publishAVideo, getAllVideos, updateVideoDetails };
+const deleteVideo = asyncHandler(async (req, res) => {
+  const { videoId, resourceType1, resourceType2 } = req.params;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "videoId is wrong");
+  }
+
+  const user = req.user._id;
+  //console.log(user);
+  const video = await Video.findById(videoId);
+  // console.log(video.owner);
+
+  if (JSON.stringify(user) !== JSON.stringify(video.owner)) {
+    throw new ApiError(400, "unauthorizied operation performed");
+  }
+
+  const deletingVideo = await deleteOnCloudinary(
+    video.videoFile,
+    resourceType1
+  );
+  //console.log(deletingVideo);
+
+  if (!deletingVideo) {
+    throw new ApiError(400, "deleting video failed");
+  }
+  const deletingThumbNail = await deleteOnCloudinary(
+    video.thumbnail,
+    resourceType2
+  );
+
+  if (!deletingThumbNail) {
+    throw new ApiError(400, "deleting thumbnail failed");
+  }
+
+  const deletingVideoCollection = await Video.findByIdAndDelete(videoId);
+  if (!deletingVideoCollection) {
+    throw new ApiError(400, " deleting video Collection failed");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "video collection deleted successfully"));
+});
+
+const getVideoById = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "incorrect videoId");
+  }
+
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(400, "video not found");
+  }
+  console.log(video);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "video fetched successfully"));
+});
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "video Id is incorrect");
+  }
+
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(200, "video doesn't exists");
+  }
+  const user = req.user._id;
+  //console.log(user);
+  // console.log(video.owner);
+  if (JSON.stringify(user) !== JSON.stringify(video.owner)) {
+    throw new ApiError(400, "unauthorizied operation performed");
+  }
+
+  const isPublishedVideo = video.isPublished;
+  if (isPublishedVideo) {
+    video.isPublished = false;
+  }
+  if (!isPublishedVideo) {
+    video.isPublished = true;
+  }
+  const updatedVideo = await video.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedVideo, "video unpublished"));
+});
+
+const getAllVideos = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const query = req.query.query || "";
+  const shortBy = req.query.shortBy;
+  const shortType = req.query.shortType;
+  const userId = req.query.userId;
+
+
+  
+});
+
+export {
+  publishAVideo,
+  updateVideoDetails,
+  deleteVideo,
+  getVideoById,
+  togglePublishStatus,
+  getAllVideos,
+};

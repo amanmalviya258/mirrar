@@ -6,7 +6,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import emailValidator from "node-email-verifier";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 
 const generateAccessAndRefereshToken = async (userID) => {
   try {
@@ -324,7 +323,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 //----------------------------------------------------
 const updateUserAvatar = asyncHandler(async (req, res) => {
-
+  const { resourceType } = req.params;
   const avatarLocalPath = req.file?.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is missing");
@@ -333,7 +332,10 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   const previousUserAvatar = user?.avatar;
 
-  const deleteMedia = await deleteOnCloudinary(previousUserAvatar);
+  const deleteMedia = await deleteOnCloudinary(
+    previousUserAvatar,
+    resourceType
+  );
   if (!deleteMedia) {
     throw new ApiError(400, "deleting image from cloudinary failed");
   }
@@ -354,6 +356,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 //----------------------------------------------------
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
+  const { resourceType } = req.params;
   //console.log(coverImageLocalPath)
   if (!coverImageLocalPath) {
     throw new ApiError(400, "cover file is missing");
@@ -363,7 +366,10 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
   const previousUserCoverImage = user?.coverImage;
 
-  const deleteMedia = await deleteOnCloudinary(previousUserCoverImage);
+  const deleteMedia = await deleteOnCloudinary(
+    previousUserCoverImage,
+    resourceType
+  );
   if (!deleteMedia) {
     throw new ApiError(400, "deleting image from cloudinary failed");
   }
